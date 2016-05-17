@@ -1,0 +1,68 @@
+- name: Development environment
+  hosts: default
+  tasks:
+    - name: Add Docker repository key
+      become: yes
+      command: 'bash -c "wget -qO- https://get.docker.io/gpg | apt-key add -"'
+
+    - name: Add Docker repository file
+      become: yes
+      apt_repository: repo='deb http://get.docker.io/ubuntu docker main'
+
+    - name: Get kernel version
+      command: 'uname -r'
+      register: kernel_release
+
+    - name: Install docker and requirements
+      become: yes
+      apt:
+        update_cache: yes
+        name:
+          - linux-image-extra-{{ kernel_release.stdout }}
+          - lxc-docker
+          - python-pip
+
+    - name: Install docker-py
+      become: yes
+      pip: name=docker-py version=1.7.2
+
+    - name: Clone test-app-image
+      git: repo=https://github.com/radar-aol-pl/gym.git dest=/tmp/gym
+
+    - name: Create redis volume
+      become: yes
+      command: 'docker volume create --name redis-data'
+
+    ## docker build -t test-app-image /tmp/gym/test-app-image
+    - name: Build test-app-image
+      become: yes
+      docker_image: name=test-app-image path=/tmp/gym/test-app-image
+
+    ## docker run -d --restart=always -p 0.0.0.0:6379:6379 -v redis-data:/data --name=test-redis redis:3 redis-server --appendonly yes
+    - name: Run test-redis
+      become: yes
+      docker:
+        name: test-redis
+        image: redis:3
+        restart_policy: always
+        command: 'redis-server --appendonly yes'
+        expose: 6379
+        ports:
+          - 0.0.0.0:6379:6379
+        volumes:
+          - redis-data:/data
+
+    ## docker run -d --restart=always -p 0.0.0.0:5000:5000 --link=test-redis:redis-addr -e 'REDIS_SERVER=redis-addr' --name=test-app test-app-image
+    - name: Run test-app
+      become: yes
+      docker:
+        name: test-app
+        image: test-app-image
+        restart_policy: always
+        expose: 5000
+        ports:
+          - 0.0.0.0:5000:5000
+        links:
+          - test-redis:redis-addr
+        env:
+          REDIS_SERVER: redis-addr
