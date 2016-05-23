@@ -26,9 +26,6 @@
       become: yes
       pip: name=docker-py version=1.7.2
 
-    - name: Clone test-app-image
-      git: repo=https://github.com/radar-aol-pl/gym.git dest=/tmp/gym
-
     - name: Create redis volume
       become: yes
       command: 'docker volume create --name redis-data'
