@@ -33,10 +33,10 @@
       become: yes
       command: 'docker volume create --name redis-data'
 
-    ## docker build -t test-app-image /tmp/gym/test-app-image
+    ## docker build -t test-app-image /home/vagrant/forge/test-app-image
     - name: Build test-app-image
       become: yes
-      docker_image: name=test-app-image path=/tmp/gym/test-app-image
+      docker_image: name=test-app-image path=/home/vagrant/forge/test-app-image
 
     ## docker run -d --restart=always -p 0.0.0.0:6379:6379 -v redis-data:/data --name=test-redis redis:3 redis-server --appendonly yes
     - name: Run test-redis
