@@ -1,20 +1,22 @@
 - name: Development environment
+  become: yes
   hosts: default
   tasks:
     - name: Add Docker repository key
-      become: yes
+      tags: repo
       command: 'bash -c "wget -qO- https://get.docker.io/gpg | apt-key add -"'
 
     - name: Add Docker repository file
-      become: yes
+      tags: repo
       apt_repository: repo='deb http://get.docker.io/ubuntu docker main'
 
     - name: Get kernel version
+      tags: packages
       command: 'uname -r'
       register: kernel_release
 
     - name: Install docker and requirements
-      become: yes
+      tags: packages
       apt:
         update_cache: yes
         name:
@@ -23,23 +25,27 @@
           - python-pip
 
     - name: Install docker-py
-      become: yes
+      tags: packages
       pip: name=docker-py version=1.7.2
 
+    - name: Add vagrant user to docker group
+      tags: environment
+      user: name=vagrant groups=docker
+
     - name: Create redis volume
-      become: yes
+      tags: containers
       command: 'docker volume create --name redis-data'
 
-    ## docker build -t test-app-image /home/vagrant/forge/test-app-image
-    - name: Build test-app-image
-      become: yes
-      docker_image: name=test-app-image path=/home/vagrant/forge/test-app-image
+    ## docker build -t app-image /home/vagrant/app
+    - name: Build application image
+      tags: containers
+      docker_image: name=app-image path=/home/vagrant/app
 
-    ## docker run -d --restart=always -p 0.0.0.0:6379:6379 -v redis-data:/data --name=test-redis redis:3 redis-server --appendonly yes
-    - name: Run test-redis
-      become: yes
+    ## docker run -d --restart=always --name=redis-service -p 0.0.0.0:6379:6379 -v redis-data:/data redis:3 redis-server --appendonly yes
+    - name: Run redis
+      tags: containers
       docker:
-        name: test-redis
+        name: redis-service
         image: redis:3
         restart_policy: always
         command: 'redis-server --appendonly yes'
@@ -49,17 +55,19 @@
         volumes:
           - redis-data:/data
 
-    ## docker run -d --restart=always -p 0.0.0.0:5000:5000 --link=test-redis:redis-addr -e 'REDIS_SERVER=redis-addr' --name=test-app test-app-image
-    - name: Run test-app
-      become: yes
+    ## docker run -d --restart=always --name=app-service -p 0.0.0.0:5000:5000 -v /home/vagrant/app:/usr/local/app --link=redis-service:redis-addr -e 'REDIS_SERVER=redis-addr' app-image
+    - name: Run application
+      tags: containers
       docker:
-        name: test-app
-        image: test-app-image
+        name: app-service
+        image: app-image
         restart_policy: always
         expose: 5000
         ports:
           - 0.0.0.0:5000:5000
         links:
-          - test-redis:redis-addr
+          - redis-service:redis-addr
+        volumes:
+          - /home/vagrant/app:/usr/local/app
         env:
           REDIS_SERVER: redis-addr
