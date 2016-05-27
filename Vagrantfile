@@ -1,21 +1,68 @@
-Vagrant.require_version ">= 1.7.2"
+Vagrant.require_version ">= 1.8.1"
 Vagrant.configure(2) do |config|
-    config.vm.box = "ubuntu/trusty64"
-    config.vm.box_check_update = "false"
-    config.vm.hostname = "vagrant-trusty64"
-    config.vm.network "forwarded_port", guest: 5000, host: 5000
-    config.vm.synced_folder ".", "/home/vagrant/app"
-    config.vm.provision "ansible" do |ab|
-        ab.playbook = "ansible/playbook.yml"
-        ab.tags = ENV['ANSIBLE_TAGS'] ||= "all"
-        # ab.verbose = "v"
+
+    boxes = [
+        {
+            :name => "devel",
+            :box => "ubuntu/trusty64",
+            :cpu => "2",
+            :mem => "1024",
+            :net => "virtio",
+            :sync_dir => [ { '.' => '/home/vagrant/app' } ],
+            :forward => [ { '5000' => '5000' } ],
+            :provision => true,
+            :start => true,
+        },
+        {
+            :name => "stage",
+            :box => "ubuntu/trusty64",
+            :cpu => "2",
+            :mem => "1024",
+            :net => "virtio",
+            :provision => false,
+            :start => false,
+        },
+    ]
+
+    boxes.each do |opts|
+        config.vm.define opts[:name], autostart: opts[:start] do |config|
+
+            config.vm.hostname = opts[:name]
+            config.vm.box = opts[:box]
+            config.vm.box_check_update = false
+
+            unless opts[:sync_dir].nil?
+                opts[:sync_dir].each do |dir|
+                    dir.each do |src, dst|
+                        config.vm.synced_folder src, dst
+                    end
+                end
+            end
+
+            unless opts[:forward].nil?
+                opts[:forward].each do |port|
+                    port.each do |guest, host|
+                        config.vm.network "forwarded_port", guest: guest, host: host
+                    end
+                end
+            end
+
+            config.vm.provider "virtualbox" do |virtualbox|
+                virtualbox.customize ["modifyvm", :id, "--name", opts[:name]]
+                virtualbox.customize ["modifyvm", :id, "--cpus", opts[:cpu]]
+                virtualbox.customize ["modifyvm", :id, "--memory", opts[:mem]]
+                virtualbox.customize ["modifyvm", :id, "--nictype1", opts[:net]]
+            end
+
+            config.vm.provision "ansible" do |ansible|
+                ansible.playbook = "ansible/playbook.yml"
+                ansible.tags = ENV['ANSIBLE_TAGS'] ||= "all"
+                # ansible.verbose = "v"
+            end
+
+        end
     end
-    config.vm.provider "virtualbox" do |vb|
-        vb.name = "vad"
-        vb.customize ["modifyvm", :id, "--cpus", "2"]
-        vb.customize ["modifyvm", :id, "--memory", "1024"]
-        vb.customize ["modifyvm", :id, "--nictype1", "virtio"]
-    end
+
 end
 
 # vim: set ft=ruby :

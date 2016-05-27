@@ -1,6 +1,6 @@
-- name: Development environment
+- name: Virtual environments
   become: yes
-  hosts: default
+  hosts: devel
   tasks:
     - name: Add Docker repository key
       tags: repo
