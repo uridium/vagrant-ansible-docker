@@ -8,6 +8,7 @@ Vagrant.configure(2) do |config|
             :cpu => "2",
             :mem => "1024",
             :net => "virtio",
+            :ip => "10.10.10.10",
             :sync_dir => [ { '.' => '/home/vagrant/app' } ],
             :forward => [ { '5000' => '5000' } ],
             :provision => true,
@@ -20,6 +21,7 @@ Vagrant.configure(2) do |config|
             :cpu => "2",
             :mem => "1024",
             :net => "virtio",
+            :ip => "10.10.10.20",
             :provision => false,
             :primary => false,
             :start => false,
@@ -32,6 +34,7 @@ Vagrant.configure(2) do |config|
             config.vm.hostname = opts[:name]
             config.vm.box = opts[:box]
             config.vm.box_check_update = false
+            config.vm.network "private_network", ip: opts[:ip]
 
             unless opts[:sync_dir].nil?
                 opts[:sync_dir].each do |dir|
