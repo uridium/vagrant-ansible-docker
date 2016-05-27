@@ -11,6 +11,7 @@ Vagrant.configure(2) do |config|
             :sync_dir => [ { '.' => '/home/vagrant/app' } ],
             :forward => [ { '5000' => '5000' } ],
             :provision => true,
+            :primary => true,
             :start => true,
         },
         {
@@ -20,12 +21,13 @@ Vagrant.configure(2) do |config|
             :mem => "1024",
             :net => "virtio",
             :provision => false,
+            :primary => false,
             :start => false,
         },
     ]
 
     boxes.each do |opts|
-        config.vm.define opts[:name], autostart: opts[:start] do |config|
+        config.vm.define opts[:name], primary: opts[:primary], autostart: opts[:start] do |config|
 
             config.vm.hostname = opts[:name]
             config.vm.box = opts[:box]
