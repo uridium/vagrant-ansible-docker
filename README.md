@@ -1,6 +1,6 @@
 # Requirements
-* Vagrant >= 1.7.2
-* Ansible >= 1.9.2
+* Vagrant >= 1.8.1
+* Ansible >= 2.1.0
 
 # Install
 ```
