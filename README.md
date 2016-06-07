@@ -8,3 +8,8 @@ $ git clone [git-repo-url]
 $ cd vagrant-ansible-docker
 $ vagrant up
 ```
+
+# Connect to the app
+```
+$ curl devel:5000
+```
