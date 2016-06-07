@@ -1,4 +1,12 @@
 Vagrant.require_version ">= 1.8.1"
+
+required_plugins = %w( vagrant-hostmanager )
+required_plugins.each do |plugin|
+    if !Vagrant.has_plugin? plugin
+        system "vagrant plugin install #{plugin}"
+    end
+end
+
 Vagrant.configure(2) do |config|
 
     boxes = [
@@ -68,6 +76,13 @@ Vagrant.configure(2) do |config|
         end
     end
 
+    if Vagrant.has_plugin?("vagrant-hostmanager")
+        config.hostmanager.enabled = true
+        config.hostmanager.manage_host = true
+        config.hostmanager.manage_guest = true
+        config.hostmanager.ignore_private_ip = false
+        config.hostmanager.include_offline = true
+    end
 end
 
 # vim: set ft=ruby :
