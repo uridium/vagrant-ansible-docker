@@ -5,13 +5,13 @@
     - name: Add Docker repository key
       tags: repo
       apt_key:
-        keyserver: keyserver.ubuntu.com
-        id: 36A1D7869245C8950F966E92D8576A8BA88D21E9
+        keyserver: p80.pool.sks-keyservers.net
+        id: 58118E89F3A912897C070ADBF76221572C52609D
 
     - name: Add Docker repository file
       tags: repo
       apt_repository:
-        repo: deb http://get.docker.io/ubuntu docker main
+        repo: deb https://apt.dockerproject.org/repo ubuntu-trusty main
         filename: docker
 
     - name: Get kernel version
@@ -26,7 +26,7 @@
         update_cache: yes
         name:
           - linux-image-extra-{{ kernel_release.stdout }}
-          - lxc-docker
+          - docker-engine
           - python-pip
 
     - name: Install docker-py
