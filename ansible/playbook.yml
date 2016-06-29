@@ -2,6 +2,7 @@
   become: yes
   hosts: devel
   tasks:
+    ## apt-key adv --keyserver p80.pool.sks-keyservers.net --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
     - name: Add Docker repository key
       tags: repo
       apt_key:
@@ -20,12 +21,18 @@
       register: kernel_release
       changed_when: False
 
-    - name: Install docker and requirements
+    - name: Install kernel extra modules
       tags: packages
       apt:
         update_cache: yes
         name:
           - linux-image-extra-{{ kernel_release.stdout }}
+
+    - name: Install docker and requirements
+      tags: packages
+      apt:
+        update_cache: no
+        name:
           - docker-engine
           - python-pip
 
