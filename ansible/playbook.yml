@@ -40,7 +40,7 @@
       tags: packages
       pip:
         name: docker-py
-        version: 1.7.2
+        version: 1.10.6
 
     - name: Add vagrant user to docker group
       tags: environment

@@ -1,6 +1,5 @@
-Vagrant.require_version ">= 1.8.1"
+required_plugins = %w(vagrant-hostmanager)
 
-required_plugins = %w( vagrant-hostmanager )
 required_plugins.each do |plugin|
     if !Vagrant.has_plugin? plugin
         system "vagrant plugin install #{plugin}"
@@ -17,8 +16,12 @@ Vagrant.configure(2) do |config|
             :mem       => "1024",
             :net       => "virtio",
             :ip        => "10.10.10.10",
-            :sync_dir  => [ { '.' => '/home/vagrant/app' } ],
-            :forward   => [ { '5000' => '5000' } ],
+            :sync_dir  => [ {
+                '.' => '/home/vagrant/app',
+            } ],
+            :forward   => [ {
+                '5000' => '5000',
+            } ],
             :provision => true,
             :primary   => true,
             :start     => true,
@@ -81,7 +84,7 @@ Vagrant.configure(2) do |config|
         config.hostmanager.manage_host = true
         config.hostmanager.manage_guest = true
         config.hostmanager.ignore_private_ip = false
-        config.hostmanager.include_offline = true
+        config.hostmanager.include_offline = false
     end
 end
 
