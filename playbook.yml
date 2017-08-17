@@ -1,0 +1,72 @@
+---
+- hosts: devel
+  become: True
+  gather_facts: True
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+  tasks:
+    ## apt-key adv --keyserver p80.pool.sks-keyservers.net --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+    - name: Add Docker repository key
+      apt_key:
+        keyserver: pgp.mit.edu
+        id: 58118E89F3A912897C070ADBF76221572C52609D
+
+    - name: Add Docker repository file
+      apt_repository:
+        repo: deb https://apt.dockerproject.org/repo ubuntu-{{ ansible_distribution_release }} main
+        filename: docker
+
+    - name: Install deb packages
+      apt:
+        name:
+          - linux-image-extra-{{ ansible_kernel }}
+          - docker-engine
+          - python3-pip
+
+    - name: Install python packages
+      pip:
+        name:
+          - docker
+
+    - name: Add ubuntu user to docker group
+      user:
+        name: ubuntu
+        groups: docker
+
+    - name: Create redis volume
+      command: >
+        docker volume create --name redis-data
+      args:
+        creates: /var/lib/docker/volumes/redis-data
+
+    ## docker build -t app-image /home/vagrant/app
+    - name: Build application image
+      docker_image:
+        name: app-image
+        path: /home/vagrant/app
+
+    ## docker run -d --restart=always --name=redis-service -p 0.0.0.0:6379:6379 -v redis-data:/data redis:3 redis-server --appendonly yes
+    - name: Run redis
+      docker_container:
+        name: redis-service
+        image: redis:3
+        restart_policy: always
+        command: >
+          redis-server --appendonly yes
+        exposed_ports: 6379
+        published_ports: 0.0.0.0:6379:6379
+        volumes: redis-data:/data
+
+    ## docker run -d --restart=always --name=app-service -p 0.0.0.0:5000:5000 -v /home/vagrant/app:/usr/local/app --link=redis-service:redis-addr -e 'REDIS_SERVER=redis-addr' app-image
+    - name: Run application
+      docker_container:
+        name: app-service
+        image: app-image
+        restart_policy: always
+        exposed_ports: 5000
+        published_ports: 0.0.0.0:5000:5000
+        volumes: /home/vagrant/app:/usr/local/app
+        links: redis-service:redis-addr
+        env:
+          REDIS_SERVER: redis-addr

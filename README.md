@@ -2,9 +2,9 @@
 * Vagrant >= 1.8.1
 * Ansible >= 2.1.0
 
-# Install
+# Setup
 ```
-$ git clone [git-repo-url]
+$ git clone vagrant-ansible-docker
 $ cd vagrant-ansible-docker
 $ vagrant up
 ```

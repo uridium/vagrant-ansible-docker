@@ -11,7 +11,7 @@ Vagrant.configure(2) do |config|
     boxes = [
         {
             :name      => "devel",
-            :box       => "ubuntu/trusty64",
+            :box       => "ubuntu/xenial64",
             :cpu       => "2",
             :mem       => "1024",
             :net       => "virtio",
@@ -28,7 +28,7 @@ Vagrant.configure(2) do |config|
         },
         {
             :name      => "stage",
-            :box       => "ubuntu/trusty64",
+            :box       => "ubuntu/xenial64",
             :cpu       => "2",
             :mem       => "1024",
             :net       => "virtio",
@@ -71,9 +71,8 @@ Vagrant.configure(2) do |config|
             end
 
             config.vm.provision "ansible" do |ansible|
-                ansible.playbook = "ansible/playbook.yml"
-                ansible.tags = ENV['ANSIBLE_TAGS'] ||= "all"
-                # ansible.verbose = "v"
+                ansible.playbook = "playbook.yml"
+                # ansible.verbose = "vvv"
             end
 
         end
