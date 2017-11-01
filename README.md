@@ -4,7 +4,7 @@
 
 # Setup
 ```
-$ git clone vagrant-ansible-docker
+$ git clone git@github.com:uridium/vagrant-ansible-docker.git
 $ cd vagrant-ansible-docker
 $ vagrant up
 ```
